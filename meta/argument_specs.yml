@@ -1,0 +1,140 @@
+---
+argument_specs:
+  main:
+    short_description: Active Directory Certificate Services (AD CS) Certificate Template
+    description:
+      - This role creates and configures a Active Directory Certificate Services Certificate Template.
+    author:
+      - Marco Fuchs
+    options:
+      cert_template_domain_path:
+        type: str
+        required: true
+        description:
+          - The full LDAP path of the domain where the CA is located.
+
+      cert_template_name:
+        type: str
+        required: true
+        description:
+          - The name of the certificate template.
+
+      cert_template_ca_name:
+        type: str
+        required: true
+        description:
+          - Name of the Certificate Autority (CA).
+
+      cert_template_key_size:
+        type: int
+        required: true
+        description:
+          - The minimum size in bits of the public key.
+
+      cert_template_pkey_flag:
+        type: int
+        required: true
+        description:
+          - Specifies the private key flags. Its value can be 0, or it can consist of a bitwise OR of flags from the table in the resource + a bitwise AND with the two values below.
+
+      cert_template_ra_application_policies:
+        type: str
+        required: true
+        description:
+          - The msPKI-RA-Application-Policies attribute encapsulates embedded properties for multipurpose use. The syntax for the data that is stored in this attribute is different, depending on the schema version for the template.
+
+      cert_template_application_policies:
+        type: str
+        required: true
+        description:
+          - Contains multistring attributes that specify a set of application policy OIDs.
+
+      cert_template_schema_version:
+        type: int
+        required: true
+        description:
+          - Specifies the schema version of the templates. The allowed values are `1`, `2`, `3`, and `4`. On the latest AD compatibility modes, usually `4`is used.
+
+      cert_template_enrollment_flag:
+        type: int
+        required: true
+        description:
+          - Specifies the enrollment flags. The attribute value can be 0, or it can consist of a bitwise OR of flags from the table in the documentation.
+
+      cert_template_ra_signature:
+        type: int
+        required: true
+        description:
+          - Specifies the number of recovery agent signatures that are required on a request that references this template.
+
+      cert_template_major_revision:
+        type: int
+        required: true
+        description:
+          - Specifies the major version of this template.
+
+      cert_template_minor_revision:
+        type: int
+        required: true
+        description:
+          - Specifies the minor version of this template.
+
+      cert_template_flags:
+        type: int
+        required: true
+        description:
+          - Specifies the general-enrollment flags attribute. These flags are communicated as an integer value of this attribute. The attribute value can be `0`, or it can consist of a bitwise **OR** of flags from the table in the documentation.
+
+      cert_template_key_spec:
+        type: int
+        required: true
+        description:
+          - Specifies the key usage using the pKIDefaultKeySpec attribute
+
+      cert_template_issuing_depth:
+        type: int
+        required: true
+        description:
+          - Specifies the maximum depth value for the Basic Constraint extension, as specified in `[RFC3280]` section 4.2.1.10.
+
+      cert_template_crit_extensions:
+        type: str
+        required: true
+        description:
+          - Specifies a list of OIDs that identify extensions that MUST have critical flags enabled, if present, in an issued certificate. For more information about critical extensions, see `[RFC3280]` section 4.2.
+
+      cert_template_default_csp:
+        type: str
+        required: true
+        description:
+          - Specifies a list of cryptographic service providers (CSPs) that are used to create the private key and public key.
+
+      cert_template_ext_key_usage:
+        type: str
+        required: true
+        description:
+          - Specifies a list of OIDs that represent extended key usages, as specified in `[RFC3280]` section 4.2.1.13.
+
+      cert_template_name_flag:
+        type: str
+        required: true
+        description:
+          - Specifies the subject name flags. Its value can be `0`, or it can consist of a bitwise **OR** of flags from the table in the documentation.
+
+      cert_template_key_usage:
+        type: str
+        required: true
+        description:
+          - Specifies the key usage extension.
+
+      cert_template_expiration_period:
+        type: dict
+        required: true
+        description:
+          - Specifies the maximum validity period of the certificate. The attribute is converted to an 8-byte octet string that initializes the `FILETIME` structure defined in `[MS-DTYP]` section 2.3.3.
+
+      cert_template_renewal_period:
+        type: dict
+        required: true
+        description:
+          - Specifies the time before a certificate expires, during which time, clients need to send a certificate renewal request, as described in `[MS-CERSOD]` sections 2.5.2, 2.5.3.1, and 3.6. The attribute is an 8-byte octet string that initializes the `FILETIME` structure that is defined in `[MS-DTYP]` section 2.3.3.

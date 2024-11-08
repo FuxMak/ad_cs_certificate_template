@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Marco Fuchs
+  namespace: fuxmak
+  role_name: ad_cs_certificate_template
+  description: This role creates and configures a Active Directory Certificate Services Certificate Template.
+
+  license: MIT
+
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+
+collections:
+  - ansible.windows
+  - community.windows

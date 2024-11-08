@@ -1,0 +1,43 @@
+cert_template_key_size: 2048
+
+# Publish in AD, Export PKEY, Key Storage Provider RSA, Must use, SHA256
+cert_template_pkey_flag: 101056528
+
+# Asymmetric-Algorithm - RSA, Hash-Algorithm - SHA512, Key-Usage - 16777215, Symmetric-Algorithm - 3DES, Symmetric-Key-Length - 168
+cert_template_ra_application_policies: "msPKI-Asymmetric-Algorithm`PZPWSTR`RSA`msPKI-Hash-Algorithm`PZPWSTR`SHA512`msPKI-Key-Usage`DWORD`16777215`msPKI-Symmetric-Algorithm`PZPWSTR`3DES`msPKI-Symmetric-Key-Length`DWORD`168`"
+
+cert_template_application_policies: "1.3.6.1.5.5.7.3.1" # (TLS_WEB_SERVER_AUTHENTICATION)
+cert_template_schema_version: 4
+cert_template_enrollment_flag: 8
+cert_template_ra_signature: 0
+cert_template_major_revision: 100
+cert_template_minor_revision: 1 # TODO: Implement handler to increment upon change
+cert_template_flags: 131649
+cert_template_key_spec: 1
+cert_template_issuing_depth: 0
+cert_template_crit_extensions: "2.5.29.15"
+cert_template_default_csp: "1,Microsoft Software Key Storage Provider"
+
+# TLS_WEB_SERVER_AUTHENTICATION
+cert_template_ext_key_usage: "1.3.6.1.5.5.7.3.1"
+
+# Hex: 0x00000001 - CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT
+cert_template_name_flag: 1
+
+cert_template_key_usage:
+  - 160
+  - 0
+
+cert_template_expiration_period: # ByteArray generated from dict
+  years: 2
+  months: 0
+  weeks: 0
+  days: 0
+  hours: 0
+
+cert_template_renewal_period: # ByteArray generated from dict
+  years: 0
+  months: 0
+  weeks: 6
+  days: 0
+  hours: 0

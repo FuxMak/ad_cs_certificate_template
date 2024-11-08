@@ -1,0 +1,123 @@
+---
+# ---------------------------------------------------
+# --------------P-R-E-R-E-Q-U-I-S-I-T-E-S------------
+# ---------------------------------------------------
+
+- name: Build derived variables
+  ansible.builtin.set_fact:
+    cert_template_pki_root: "CN=Public Key Services,CN=Services,CN=Configuration,{{ cert_template_domain_path }}"
+
+- name: Get expiration and renewal periods
+  ansible.builtin.set_fact:
+    cert_template_pki_root: "CN=Public Key Services,CN=Services,CN=Configuration,{{ cert_template_domain_path }}"
+    result_cert_template_expiration_period: "{{ cert_template_expiration_period | to_pki_expiration_period }}"
+    result_cert_template_renewal_period: "{{ cert_template_renewal_period | to_pki_expiration_period }}"
+
+- name: Get AD/LDAP forest OID
+  microsoft.ad.object_info:
+    identity: "CN=OID,{{ cert_template_pki_root }}"
+    properties:
+      - msPKI-Cert-Template-OID
+  register: result_forest_oid
+  failed_when: (result_forest_oid.objects | length) == 0
+
+- name: Check if AD object pKICertificateTemplate already exists
+  microsoft.ad.object_info:
+    identity: "CN={{ cert_template_name }},CN=Certificate Templates,{{ cert_template_pki_root }}"
+    properties: "*"
+  register: result_template_exists
+
+# ---------------------------------------------------
+# --------------C-R-E-A-T-E--T-E-M-P-L-A-T-E---------
+# ---------------------------------------------------
+
+- name: Generate OID for new template
+  when: result_template_exists.objects[0] is not defined
+  block:
+    - name: Generate random hex string
+      vars:
+        hex_length: 32
+        hex_chars: "0123456789ABCDEF"
+
+        oid1_start: 1000000
+        oid2_start: 10000000
+        oid_end: 99999999
+      ansible.builtin.set_fact:
+        random_hex: "{{ query('community.general.random_string', upper=false, lower=false, override_special=hex_chars, numbers=false, length=hex_length)[0] }}"
+        random_oid1: "{{ oid_end | random(start=oid1_start) }}"
+        random_oid2: "{{ oid_end | random(start=oid2_start) }}"
+
+    - name: Build certificate template vars, msPKI-Cert-Template-OID, name, revision
+      ansible.builtin.set_fact:
+        cert_template_revision: 1
+        cert_template_cn: "{{ random_oid1 }}.{{ random_hex }}"
+        cert_template_oid: "{{ result_forest_oid.objects[0]['msPKI-Cert-Template-OID'] }}.{{ random_oid1 }}.{{ random_oid2 }}"
+
+    - name: Get all PKI OID objects
+      microsoft.ad.object_info:
+        ldap_filter: "(CN=*)"
+        search_base: "CN=OID,{{ cert_template_pki_root }}"
+        properties:
+          - msPKI-Cert-Template-OID
+          - displayName
+      register: result_template_oid
+      failed_when: cert_template_oid in (result_template_oid.objects | map(attribute='msPKI-Cert-Template-OID'))
+
+    - name: Create AD/LDAP msPKI-Enterprise-Oid for certificate template
+      microsoft.ad.object:
+        display_name: "{{ cert_template_name }}"
+        name: "{{ cert_template_cn }}"
+        attributes:
+          set:
+            flags: 1
+            msPKI-Cert-Template-OID: "{{ cert_template_oid }}"
+        path: "CN=OID,{{ cert_template_pki_root }}"
+        type: msPKI-Enterprise-Oid
+        state: present
+      when: cert_template_name not in (result_template_oid.objects | map(attribute='DisplayName'))
+
+- name: Create AD/LDAP object pKICertificateTemplate
+  microsoft.ad.object:
+    name: "{{ cert_template_name }}"
+    display_name: "{{ cert_template_name }}"
+    attributes:
+      set:
+        flags: "{{ cert_template_flags }}"
+        msPKI-Minimal-Key-Size: "{{ cert_template_key_size }}"
+        msPKI-Private-Key-Flag: "{{ cert_template_pkey_flag }}"
+        msPKI-Template-Minor-Revision: "{{ cert_template_minor_revision }}"
+        msPKI-RA-Application-Policies: "{{ cert_template_ra_application_policies }}"
+        msPKI-Certificate-Application-Policy: "{{ cert_template_application_policies }}"
+        msPKI-Cert-Template-OID: "{{ cert_template_oid is defined | ternary(cert_template_oid, result_template_exists.objects[0]['msPKI-Cert-Template-OID']) }}"
+        pKIExpirationPeriod:
+          type: bytes
+          value: "{{ result_cert_template_expiration_period | encode_bytearray_to_base64 }}"
+        pKIOverlapPeriod:
+          type: bytes
+          value: "{{ result_cert_template_renewal_period | encode_bytearray_to_base64 }}"
+        msPKI-Template-Schema-Version: "{{ cert_template_schema_version }}"
+        msPKI-Certificate-Name-Flag: "{{ cert_template_name_flag }}"
+        msPKI-Enrollment-Flag: "{{ cert_template_enrollment_flag }}"
+        msPKI-RA-Signature: "{{ cert_template_ra_signature }}"
+        pKIDefaultKeySpec: "{{ cert_template_key_spec }}"
+        pKIDefaultCSPs: "{{ cert_template_default_csp }}"
+        pKIMaxIssuingDepth: "{{ cert_template_issuing_depth }}"
+        pKIExtendedKeyUsage: "{{ cert_template_ext_key_usage }}"
+        pKICriticalExtensions: "{{ cert_template_crit_extensions }}"
+        pKIKeyUsage:
+          type: bytes
+          value: "{{ cert_template_key_usage | encode_bytearray_to_base64 }}"
+        revision: "{{ cert_template_major_revision }}"
+        objectClass: pKICertificateTemplate
+    path: "CN=Certificate Templates,{{ cert_template_pki_root }}"
+    type: pKICertificateTemplate
+    state: present
+
+- name: Assure templates are being issued by CA
+  microsoft.ad.object:
+    identity: "CN={{ cert_template_ca_name }},CN=Enrollment Services,{{ cert_template_pki_root }}"
+    attributes:
+      add:
+        certificateTemplates:
+          - "{{ cert_template_name }}"
+    type: pkiEnrollmentService
