@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Marco Fuchs
-  namespace: fuxmak
+  namespace: FuxMak
   role_name: ad_cs_certificate_template
   description: This role creates and configures a Active Directory Certificate Services Certificate Template.
 
